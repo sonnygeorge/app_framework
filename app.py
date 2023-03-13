@@ -28,7 +28,8 @@ class App:
         while True:
             self.update(state_manager = self.state_manager, **self.update_parameters())
 
-    def update_parameters(self) -> dict:
+    def update_parameters(self) -> dict:  # noqa
+        """Override this functions to add custom params to the update loop"""
         return {}
 
 
