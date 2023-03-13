@@ -1,7 +1,7 @@
 import pathlib, importlib
 from abc import ABC
 from app_data import state_manager
-
+import inspect
 
 class Plugin(ABC):
     def __init__(self, app, **states):
@@ -51,7 +51,11 @@ class PluginLoader:
             self.plugins[plugin_name].unload()
             del self.plugins[plugin_name]
 
-    def update(self, *args, **kwargs):
+    def update(self, state_manager):
         for plugin in self.plugins.values():
             if hasattr(plugin, "update"):
-                plugin.update(*args, **kwargs)
+                params = inspect.signature(plugin.update).parameters
+                to_pass = dict()
+                if "state_manager" in params:
+                    to_pass["state_manager"] = state_manager
+                plugin.update(**to_pass)

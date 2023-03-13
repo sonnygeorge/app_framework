@@ -1,5 +1,5 @@
 from app_data import plugin_loader, state_manager, event_handler
-
+import inspect
 
 class App:
 
@@ -20,7 +20,7 @@ class App:
         self.plugin_loader.load_modules(self)
 
     def update(self):
-        self.plugin_loader.update(self.state_manager)
+        self.plugin_loader.update(state_manager = self.state_manager)
 
     def loop(self):
         while True:

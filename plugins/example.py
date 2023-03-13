@@ -1,5 +1,4 @@
 from app_data.plugin_loader import Plugin
-from app_data.event_handler import subscribe
 
 
 class Example(Plugin):
@@ -7,8 +6,9 @@ class Example(Plugin):
         super().__init__(app)
         print("Example plugin initialized")
 
-    def update(self, *args, **kwargs):
-        print("Example plugin update")
+    def update(self, state_manager):
+        print("Example plugin updated", state_manager)
+
 
 def setup(app):
     return [Example(app)]
