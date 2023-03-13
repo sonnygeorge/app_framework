@@ -51,11 +51,17 @@ class PluginLoader:
             self.plugins[plugin_name].unload()
             del self.plugins[plugin_name]
 
-    def update(self, state_manager):
+    def update(self, **kwargs):
+
+        for plugin in self.plugins.values():
+            if hasattr(plugin, "send_updates"):
+                kwargs.update(plugin.send_updates())
+
         for plugin in self.plugins.values():
             if hasattr(plugin, "update"):
                 params = inspect.signature(plugin.update).parameters
                 to_pass = dict()
-                if "state_manager" in params:
-                    to_pass["state_manager"] = state_manager
+                for key, value in kwargs.items():
+                    if key in params:
+                        to_pass[key] = value
                 plugin.update(**to_pass)

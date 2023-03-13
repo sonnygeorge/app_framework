@@ -1,5 +1,5 @@
 from app_data import plugin_loader, state_manager, event_handler
-import inspect
+
 
 class App:
 
@@ -9,7 +9,9 @@ class App:
         return getattr(cls, 'instance')
 
     def __init__(self, temporary_states = None, global_states = None, events = None):
-        self.plugin_loader = plugin_loader.PluginLoader()
+        self.plugin_loader = plugin_loader.PluginLoader(
+
+        )
         self.event_handler = event_handler.EventHandler(
                 events
         )
@@ -19,12 +21,15 @@ class App:
         )
         self.plugin_loader.load_modules(self)
 
-    def update(self):
-        self.plugin_loader.update(state_manager = self.state_manager)
+    def update(self, **kwargs):
+        self.plugin_loader.update(**kwargs)
 
     def loop(self):
         while True:
-            self.update()
+            self.update(state_manager = self.state_manager, **self.update_parameters())
+
+    def update_parameters(self) -> dict:
+        return {}
 
 
 if __name__ == '__main__':
