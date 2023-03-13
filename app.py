@@ -4,6 +4,12 @@ import event_handler
 
 
 class App:
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super().__new__(cls)
+        return getattr(cls, 'instance')
+
     def __init__(self, temporary_states = None, global_states = None, events = None):
         self.plugin_loader = plugin_loader.PluginLoader()
         self.event_handler = event_handler.EventHandler(
@@ -13,14 +19,14 @@ class App:
                 temporary_states,
                 global_states
         )
+        self.plugin_loader.load_modules(self)
 
-        self.plugin_loader.load(self, 'plugins.example')
-        self.event_handler.update('on_init', self)
+    def update(self):
+        self.plugin_loader.update(self.state_manager)
 
-    def update(self, *args, **kwargs):
-        print(self.state_manager.temp_states)
-        self.plugin_loader.update(*args, **kwargs)
-        self.event_handler.update('on_update', *args, **kwargs)
+    def loop(self):
+        while True:
+            self.update()
 
 
 if __name__ == '__main__':
@@ -37,5 +43,4 @@ if __name__ == '__main__':
             ]
     )
 
-    while True:
-        app.update()
+    app.loop()

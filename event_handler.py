@@ -1,25 +1,36 @@
 import collections
 
+events = collections.defaultdict(list)
+
+
+def subscribe(func = None, *, event = None):
+    if func is None:
+        return lambda func: subscribe(func, event = event)
+    events[event].append(func)
+
+
+def unsubscribe(func = None, *, event = None):
+    if func is None:
+        return lambda func: unsubscribe(func, event = event)
+    events[event].remove(func)
+
+
+def update(event, *args, **kwargs):
+    for func in events[event]:
+        func(*args, **kwargs)
+
 
 class EventHandler:
-    def __init__(self, events=None):
-        self.events = collections.defaultdict(list)
-        for event in events or []:
-            self.events.setdefault(event, [])
+    """Facade class for the event handler module"""
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super().__new__(cls)
+        return getattr(cls, 'instance')
 
-    def subscribe(self, func = None, *, event = None):
-        if func is None:
-            return lambda func: self.subscribe(func, event = event)
-        self.events[event].append(func)
+    def __init__(self, new_events = None):
+        for event in new_events or []:
+            events.setdefault(event, [])
 
-    def unsubscribe(self, func = None, *, event = None):
-        if func is None:
-            return lambda func: self.unsubscribe(func, event = event)
-        self.events[event].remove(func)
-
-    def update(self, event, *args, **kwargs):
-        for func in self.events[event]:
-            func(*args, **kwargs)
-
-    def __call__(self, func = None, *, event = None):
-        return self.subscribe(func, event = event)
+    subscribe = subscribe
+    unsubscribe = unsubscribe
+    update = update

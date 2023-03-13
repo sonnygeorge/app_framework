@@ -8,32 +8,50 @@ class Plugin(ABC):
         self.app = app
         self.states = state_manager.GlobalStateEnum(self.__class__.__name__, states)
 
-    def update(self):
-        print("Plugin update")
+    def update(self, *args, **kwargs):
+        ...
 
     def unload(self):
-        pass
+        ...
 
 
 class PluginLoader:
     plugins = dict()
 
-    def __init__(self, plugin_path="plugins"):
-        self.plugin_path = pathlib.Path(plugin_path)
-        self.plugin_path.mkdir(parents=True, exist_ok=True)
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super().__new__(cls)
+        return getattr(cls, 'instance')
 
-    def load(self, app, module_name):
-        module = importlib.import_module(module_name)
+    def __init__(self, plugin_path = "plugins"):
+        self.plugin_path = pathlib.Path(plugin_path)
+        self.plugin_path.mkdir(parents = True, exist_ok = True)
+
+    def load_module(self, app, module):
+        module = importlib.import_module(module)
         plugins = module.setup(app)
         for plugin in plugins:
-            self.plugins[getattr(plugin, "name", plugin.__class__.__name__)] = plugin
+            self.load(plugin)
 
-    def unload(self, module_name):
-        for plugin in self.plugins.values():
-            if plugin.__module__ == module_name:
-                getattr(plugin, "unload", lambda: None)()
-        del sys.modules[module_name]
+    def load_modules(self, app):
+        path_stem = self.plugin_path.stem
+        plugin_import_fmt = f"{path_stem}.{{}}"
+        for module in self.plugin_path.iterdir():
+            if module.is_dir():
+                if (module / "__init__.py").exists():
+                    self.load_module(app, plugin_import_fmt.format(module.name))
+            elif module.suffix == ".py":
+                self.load_module(app, plugin_import_fmt.format(module.stem))
+
+    def load(self, plugin):
+        self.plugins[getattr(plugin, "name", plugin.__class__.__name__)] = plugin
+
+    def unload(self, plugin_name):
+        if plugin_name in self.plugins:
+            self.plugins[plugin_name].unload()
+            del self.plugins[plugin_name]
 
     def update(self, *args, **kwargs):
         for plugin in self.plugins.values():
-            plugin.update(*args, **kwargs)
+            if hasattr(plugin, "update"):
+                plugin.update(*args, **kwargs)

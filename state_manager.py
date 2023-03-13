@@ -1,23 +1,17 @@
-# enum who class name is the shelf filename, and the member names are the values keys, and the value is he fdefault value
 import enum
 import shelve
 import threading
 import pathlib
 import typing
 
+State = typing.Tuple[str, "Picklable"]
+States = typing.Iterable[State]
 
-# Picklable = typing.Protocol[
-#     "__getstate__",
-#     "__setstate__",
-# ]
 
-class Picklable:
+@typing.runtime_checkable
+class Picklable(typing.Protocol):
     __setstate__: typing.Callable[[typing.Any], None]
     __getstate__: typing.Callable[[], typing.Any]
-
-
-State = typing.Tuple[str, Picklable]
-States = typing.Iterable[State]
 
 
 class GlobalStateEnum(enum.Enum):
@@ -57,7 +51,12 @@ class GlobalStateEnum(enum.Enum):
 
 
 class StateManager:
-    def __init__(self, temp_states=None, global_states=None):
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super().__new__(cls)
+        return getattr(cls, 'instance')
+
+    def __init__(self, temp_states = None, global_states = None):
         self.temp_states = temp_states or dict()
         if global_states is not None:
             if isinstance(global_states, dict):
@@ -95,6 +94,7 @@ class StateManager:
     def __iter__(self) -> States:
         yield from self.temp_states.items()
         yield from ((key, self.global_states[key].value) for key in self.global_states.__members__)  # noqa
+
 
 
 if __name__ == "__main__":
