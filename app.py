@@ -1,6 +1,4 @@
-import state_manager
-import plugin_loader
-import event_handler
+from app_data import plugin_loader, state_manager, event_handler
 
 
 class App:
@@ -16,8 +14,8 @@ class App:
                 events
         )
         self.state_manager = state_manager.StateManager(
-                temporary_states,
-                global_states
+                temporary_states or {},
+                global_states or {}
         )
         self.plugin_loader.load_modules(self)
 
@@ -31,16 +29,7 @@ class App:
 
 if __name__ == '__main__':
     app = App(
-            temporary_states = {
-                    'temp_example': 0
-            },
-            global_states = {
-                    'temp_example': 0
-            },
-            events = [
-                    'on_init',
-                    'on_update'
-            ]
+
     )
 
     app.loop()

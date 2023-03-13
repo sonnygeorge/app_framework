@@ -1,6 +1,6 @@
-import pathlib, importlib, sys
+import pathlib, importlib
 from abc import ABC
-import state_manager
+from app_data import state_manager
 
 
 class Plugin(ABC):
