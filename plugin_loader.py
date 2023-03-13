@@ -9,7 +9,7 @@ class Plugin(ABC):
         self.states = state_manager.GlobalStateEnum(self.__class__.__name__, states)
 
     def update(self):
-        pass
+        print("Plugin update")
 
     def unload(self):
         pass

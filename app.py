@@ -18,6 +18,7 @@ class App:
         self.event_handler.update('on_init', self)
 
     def update(self, *args, **kwargs):
+        print(self.state_manager.temp_states)
         self.plugin_loader.update(*args, **kwargs)
         self.event_handler.update('on_update', *args, **kwargs)
 
